@@ -1,75 +1,66 @@
-import React, { Component } from 'react';
+import React, { useState } from "react";
 import { createRoot } from 'react-dom/client';
-import { Stage, Layer, Rect, Text } from 'react-konva';
+import { Stage, Layer, Rect, Text } from "react-konva";
+let history = [{ x: 100, y: 100 }];
 
-let history = [
-  {
-    x: 20,
-    y: 20,
-  },
-];
-let historyStep = 0;
+let historyIndex = 0;
+function App() {
+  let [present, setPresent] = useState(history[0]);
 
-class App extends Component {
-  state = {
-    position: history[0],
-  };
-
-  handleUndo = () => {
-    if (historyStep === 0) {
+  const handleUndo = () => {
+    if (historyIndex === 0) {
       return;
     }
-    historyStep -= 1;
-    const previous = history[historyStep];
-    this.setState({
-      position: previous,
-    });
+    historyIndex -= 1;
+    const previous = history[historyIndex];
+    setPresent(previous);
   };
 
-  handleRedo = () => {
-    if (historyStep === history.length - 1) {
+  const handleRedo = () => {
+    if (historyIndex === history.length - 1) {
       return;
     }
-    historyStep += 1;
-    const next = history[historyStep];
-    this.setState({
-      position: next,
-    });
+    historyIndex += 1;
+    const next = history[historyIndex];
+    setPresent(next);
   };
 
-  handleDragEnd = (e) => {
-    history = history.slice(0, historyStep + 1);
-    const pos = {
+  const handleDragEnd = e => {
+    history = history.slice(0, historyIndex + 1);
+    console.log("history", history);
+
+    const position = {
       x: e.target.x(),
-      y: e.target.y(),
+      y: e.target.y()
     };
-    history = history.concat([pos]);
-    historyStep += 1;
-    this.setState({
-      position: pos,
-    });
+    console.log("e", e);
+    history = history.concat([position]);
+    historyIndex += 1;
+    setPresent(position);
   };
-  render() {
-    return (
+
+  return (
       <Stage width={window.innerWidth} height={window.innerHeight}>
         <Layer>
-          <Text text="undo" onClick={this.handleUndo} />
-          <Text text="redo" x={40} onClick={this.handleRedo} />
+          <Text text="undo" onClick={handleUndo} />
+          <Text text="redo" x={40} onClick={handleRedo} />
+          <Text text={historyIndex} x={80}/>
           <Rect
-            x={this.state.position.x}
-            y={this.state.position.y}
-            width={50}
-            height={50}
-            fill="black"
-            draggable
-            onDragEnd={this.handleDragEnd}
+              x={present.x}
+              y={present.y}
+              width={50}
+              height={50}
+              fill="black"
+              draggable
+              onDragEnd={handleDragEnd}
           />
         </Layer>
       </Stage>
-    );
-  }
+  );
 }
+
 
 const container = document.getElementById('root');
 const root = createRoot(container);
 root.render(<App />);
+
